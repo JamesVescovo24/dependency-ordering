@@ -1,0 +1,36 @@
+_ > nanoagent.plugin.v0001.ManifestConfig:
+id: dependency-ordering
+name: Dependency Ordering
+version: 0.1.0
+status: ready
+spec: nanoagent.plugin/v0001
+
+runtime > nanoagent.plugin.v0001.RuntimeConfig:
+  type: mcp_stdio
+  command: [uv, run, --frozen, python, -m, plugin]
+
+permissions > nanoagent.plugin.v0001.PermissionsConfig:
+  network > nanoagent.plugin.v0001.NetworkConfig:
+    hosts: []
+  filesystem > nanoagent.plugin.v0001.FilesystemConfig:
+    write: [workspace]
+
+tools > dict[contract.Tool, nanoagent.plugin.v0001.ToolConfig]:
+  pin_dependency_graph:
+    description: Pin a hidden, deterministic reference derived from the task's input before the agent starts
+  read_dependencies:
+    description: Read the task's original data and instructions from reproducible built-in fixtures
+  save_job_order:
+    description: Validate the submitted candidate's structure and save its actual result artifact in the workspace
+
+tasks > dict[contract.Task, nanoagent.plugin.v0001.TaskConfig]:
+  order-jobs:
+    description: Topologically order jobs or mark cyclic dependency graphs
+    runner: agent
+    tools: [read_dependencies, save_job_order]
+    reference: pin_dependency_graph
+    instructions: |-
+      Read the task's data using read_dependencies with the exact task input.
+      Follow the task rules shown by the reader and compute a candidate solution yourself.
+      Save your candidate with save_job_order. Correct errors if a tool rejects a candidate.
+      Call submit with the save tool's output object, unchanged. Do not assert success without submitting it.
