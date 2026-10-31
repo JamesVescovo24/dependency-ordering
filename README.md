@@ -44,6 +44,8 @@ All tools use MCP over stdio and `NANOAGENT_WORKSPACE` supplied by NanoAgent. MC
 └── ui/                     # default NanoAgent v0001 schema renderer
 ```
 
+**Immutable report artifacts.** Each call to a save tool creates `reports/result-<sha256>.json` based on the exact saved bytes. Distinct inputs never overwrite one another, even when multiple tasks run in the same workspace. A temporary file is atomically renamed before the tool returns the path and hash. Never edit a report after saving it. Use the latest save tool result unchanged when calling `submit`.
+
 **How verification works.** Validates pinned graph, independently detects cycles with Kahn-style graph reduction, and accepts any complete ordering with each prerequisite before its dependent. Rejects unknown, missing and duplicate IDs, invalid cycle assertions, and invalid/missing reports. The verifier imports only pure allowed Python modules, reads only the workspace report, never calls an LLM, and returns a `valid`, `score`, `message`, `details` verdict. The task score is 1.0 for a valid result, 0.0 otherwise.
 
 ## Develop and run
@@ -85,7 +87,7 @@ The course RUSH Lab agent uses its configured **DeepSeek V4 Flash 0731** model a
 
 1. Set `OPENROUTER_API_KEY` in **your terminal environment**, for example `export OPENROUTER_API_KEY=...` in WSL. Never commit a key in `.env`, source code, tests or a GitHub repository.
 2. Copy `tests/agent_run.example.yaml` to a local config (or edit it in a private location) and replace the `model:` placeholder with the available **provider-qualified OpenRouter model ID**. The assignment names a model but does not provide a guaranteed API identifier.
-3. Run the agent and inspect `result.json`, `verdict.json`, `reference.json`, `messages.json` and the `workspace/reports/result.json` artifact:
+3. Run the agent and inspect `result.json`, `verdict.json`, `reference.json`, `messages.json` and the `workspace/reports/result-<sha256>.json` artifact (use the exact path returned by the save tool):
 
 ```bash
 uv run --project /path/to/nanoagent-production/nanoagent nanoagent plugin agent \

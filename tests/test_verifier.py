@@ -2,7 +2,6 @@ import hashlib
 import pytest
 from contract import PlanInput,SaveInput,SaveOutput
 from plugin.logic import pin_reference,read_dataset,save_candidate
-from plugin.storage import REPORT_PATH
 from verifier import verify_input,verify_output,verify_task
 
 @pytest.mark.parametrize('plan,order,status',[
@@ -39,7 +38,7 @@ def test_invalid_order(tmp_path,plan,order,status):
 def test_tamper_invalid_batch_and_missing(tmp_path):
     assert not verify_input('read_dependencies',PlanInput('none'))['valid']
     given=PlanInput('empty');output=save_candidate(SaveInput('empty','ordered',[]),tmp_path)
-    (tmp_path/REPORT_PATH).write_text('bad')
+    (tmp_path/output.path).write_text('bad')
     assert not verify_task('order-jobs',given,output,pin_reference(given,tmp_path),str(tmp_path))['valid']
-    (tmp_path/REPORT_PATH).unlink()
+    (tmp_path/output.path).unlink()
     assert not verify_task('order-jobs',given,output,pin_reference(given,tmp_path),str(tmp_path))['valid']
